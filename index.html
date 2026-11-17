@@ -1,0 +1,666 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<title>RAFI AVIATOR PRO</title>
+
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700;900&family=Poppins:wght@600;800&display=swap');
+
+:root{
+--primary:#00ffcc;
+--red:#ff073a;
+--bg:rgba(4,7,14,.98);
+}
+*{box-sizing:border-box}
+html,body{
+margin:0;width:100%;height:100%;
+overflow:hidden;background:#000;
+font-family:Orbitron,sans-serif;
+user-select:none;
+}
+#game-frame{
+position:fixed;inset:0;width:100%;height:100%;
+border:0;z-index:1;
+}
+
+/* LOGIN */
+#login-screen{
+position:fixed;top:50%;left:50%;
+transform:translate(-50%,-50%);
+width:290px;padding:25px 20px;
+background:var(--bg);border:2px solid var(--primary);
+border-radius:18px;z-index:10001;text-align:center;
+box-shadow:0 0 30px #00ffcc55;
+backdrop-filter:blur(15px);
+}
+.login-title{
+color:white;font-size:15px;font-weight:900;
+letter-spacing:2px;margin-bottom:20px;
+text-shadow:0 0 12px var(--primary);
+}
+.pass-input{
+width:100%;padding:13px;background:#05080e;
+color:white;border:1.5px solid var(--primary);
+border-radius:10px;text-align:center;
+font-size:15px;letter-spacing:4px;
+outline:none;margin-bottom:16px;
+}
+.btn{
+width:100%;padding:13px;border:0;border-radius:10px;
+background:linear-gradient(135deg,#00ffcc,#0077ff);
+color:#000;font-weight:900;font-family:Orbitron;
+}
+
+/* PANEL */
+#main-panel{
+display:none;position:fixed;top:35px;right:12px;
+width:min(310px,calc(100vw - 20px));
+background:var(--bg);border:2px solid var(--primary);
+border-radius:17px;z-index:10000;color:white;
+overflow:hidden;box-shadow:0 0 30px #00ffcc44;
+backdrop-filter:blur(18px);
+}
+.top-bar{
+display:flex;justify-content:space-between;
+align-items:center;padding:10px 12px;
+background:#ffffff08;border-bottom:1px solid #ffffff15;
+touch-action:none;cursor:grab;
+}
+.brand-section{display:flex;align-items:center;gap:9px}
+.brand-logo{
+width:33px;height:33px;border-radius:50%;
+object-fit:cover;border:2px solid var(--primary);
+}
+.brand-title{
+font-family:Poppins,sans-serif;font-size:11px;
+font-weight:800;background:linear-gradient(90deg,#00ffcc,#ff007f);
+-webkit-background-clip:text;-webkit-text-fill-color:transparent;
+}
+.hide-btn{
+width:27px;height:27px;border:1px solid #ff007f;
+background:#ff007f33;color:white;border-radius:6px;
+}
+.content-body{padding:11px}
+.tab-pane{display:none;flex-direction:column;gap:10px}
+.tab-pane.active{display:flex}
+
+/* SIGNAL DISPLAY */
+.signal-container{
+position:relative;width:100%;height:215px;
+overflow:hidden;border-radius:13px;
+border:1px solid #00ffcc55;
+background:
+radial-gradient(ellipse at 50% 100%,#174e72 0%,#0c2943 35%,#071626 70%,#020711 100%);
+box-shadow:inset 0 0 40px #000;
+isolation:isolate;
+}
+.signal-container:before{
+content:"";position:absolute;inset:-60%;
+background:repeating-conic-gradient(
+rgba(65,150,210,.10) 0deg 7deg,
+transparent 7deg 14deg);
+animation:rotateBg 35s linear infinite;
+z-index:0;
+}
+@keyframes rotateBg{to{transform:rotate(360deg)}}
+
+#aviatorCanvas{
+position:absolute;inset:0;width:100%;height:100%;
+z-index:2;pointer-events:none;
+}
+
+/* RED AIRCRAFT */
+.plane-icon-img{
+position:absolute;
+width:74px;height:52px;
+z-index:5;
+opacity:0;
+transform:translate(-50%,-50%);
+overflow:visible;
+pointer-events:none;
+filter:
+drop-shadow(0 0 3px #ff003c)
+drop-shadow(0 0 8px #ff003c)
+drop-shadow(0 0 14px #ff003c);
+}
+
+.cashout-label{
+position:absolute;top:12px;left:50%;
+transform:translateX(-50%);
+z-index:7;color:#ff1744;
+font-size:8px;letter-spacing:3px;font-weight:900;
+}
+.signal-value{
+position:absolute;top:50%;left:50%;
+transform:translate(-50%,-50%);
+width:100%;text-align:center;
+font-size:43px;font-weight:900;
+color:white;z-index:6;
+text-shadow:0 0 10px white,0 0 25px #fff8;
+}
+.status-text{
+position:absolute;bottom:11px;left:0;
+width:100%;text-align:center;z-index:7;
+color:var(--primary);font-size:8px;
+font-weight:900;letter-spacing:1.5px;
+}
+
+/* BUTTON */
+.analysis-btn-wrapper{
+padding:14px;text-align:center;
+border:1.5px solid var(--primary);
+border-radius:11px;cursor:pointer;
+background:linear-gradient(135deg,#00ffcc33,#ff007f33);
+box-shadow:0 0 15px #00ffcc44;
+}
+.analysis-btn-wrapper:active{transform:scale(.97)}
+.analysis-text{
+font-size:12px;font-weight:900;
+letter-spacing:2px;color:white;
+text-shadow:0 0 10px var(--primary);
+}
+.developer-credit{
+text-align:center;font-size:7px;color:#888;
+letter-spacing:1.5px;
+}
+
+/* NAV */
+.bottom-nav{
+display:flex;justify-content:space-around;
+align-items:center;padding:10px 5px;
+background:#050811;border-top:1px solid #ffffff15;
+}
+.nav-item{
+border:0;background:none;color:#777;
+display:flex;flex-direction:column;
+align-items:center;gap:4px;
+font-family:Orbitron;font-size:8px;
+font-weight:900;
+}
+.nav-item.active{color:var(--primary);text-shadow:0 0 9px var(--primary)}
+.nav-item svg{width:17px;height:17px;fill:currentColor}
+
+/* FLOATING */
+#floating-fab{
+position:fixed;top:90px;right:15px;
+width:48px;height:48px;border-radius:50%;
+overflow:hidden;border:2px solid var(--primary);
+box-shadow:0 0 16px var(--primary);
+z-index:10002;display:none;touch-action:none;
+}
+#floating-fab img{width:100%;height:100%;object-fit:cover}
+
+.panel-title-text{
+font-size:11px;font-weight:900;color:#ff007f;
+letter-spacing:1px;
+}
+.history-container{max-height:145px;overflow-y:auto}
+.history-row{
+display:flex;justify-content:space-between;
+padding:8px;margin-bottom:5px;
+background:#ffffff08;border-left:2px solid var(--primary);
+border-radius:6px;font-size:10px;color:var(--primary);
+}
+.setting-row{
+display:flex;justify-content:space-between;
+align-items:center;padding:9px 0;
+border-bottom:1px solid #ffffff12;font-size:10px;
+}
+</style>
+</head>
+
+<body>
+
+<iframe id="game-frame" src="http://www.kx8.bike/?r=lsz0372"></iframe>
+
+<div id="floating-fab">
+<img src="https://i.postimg.cc/Dyn6z252/IMG-20261116-201617-273.jpg">
+</div>
+
+<div id="login-screen">
+<div class="login-title">RAFI AVIATOR PRO</div>
+<input type="password" id="passInput" class="pass-input" placeholder="••••••">
+<button class="btn" onclick="checkLogin()">LOGIN</button>
+</div>
+
+<div id="main-panel">
+
+<div class="top-bar" id="dragHeader">
+<div class="brand-section">
+<img src="https://i.postimg.cc/Dyn6z252/IMG-20261116-201617-273.jpg" class="brand-logo">
+<div class="brand-title">RAFI AVIATOR PRO</div>
+</div>
+<button class="hide-btn" onclick="hideHack()">✕</button>
+</div>
+
+<div class="content-body">
+
+<div id="pane-home" class="tab-pane active">
+
+<div class="signal-container">
+
+<canvas id="aviatorCanvas"></canvas>
+
+<!-- SCREENSHOT STYLE RED PLANE -->
+<svg id="aviatorPlane" class="plane-icon-img"
+viewBox="0 0 240 140">
+
+<defs>
+<linearGradient id="redBody" x1="0" y1="0" x2="0" y2="1">
+<stop offset="0%" stop-color="#ff526d"/>
+<stop offset="50%" stop-color="#ff003c"/>
+<stop offset="100%" stop-color="#b00025"/>
+</linearGradient>
+</defs>
+
+<!-- MAIN BODY OUTLINE WITH EMPTY CENTER -->
+<path d="
+M18 73
+L42 68
+L65 70
+L88 61
+L132 55
+L175 55
+L201 62
+L216 69
+L201 79
+L175 84
+L130 84
+L88 82
+L65 77
+L42 80
+Z"
+fill="none"
+stroke="url(#redBody)"
+stroke-width="12"
+stroke-linejoin="round"
+stroke-linecap="round"/>
+
+<!-- LEFT TAIL -->
+<path d="
+M45 70
+L25 38
+L14 34
+L8 42
+L17 52
+L31 74
+L14 91
+L24 100
+L49 80"
+fill="none"
+stroke="#ff1744"
+stroke-width="10"
+stroke-linejoin="round"
+stroke-linecap="round"/>
+
+<!-- UPPER WING -->
+<path d="
+M82 65
+L111 29
+Q119 22 132 29
+L177 58
+L140 69
+Z"
+fill="url(#redBody)"
+stroke="#ff526d"
+stroke-width="2"/>
+
+<!-- LOWER WING -->
+<path d="
+M82 80
+L111 115
+Q119 122 132 115
+L177 87
+L140 76
+Z"
+fill="url(#redBody)"
+stroke="#ff526d"
+stroke-width="2"/>
+
+<!-- EMPTY CENTRAL BODY AREA -->
+<path d="
+M77 70
+L124 65
+L174 65
+L193 70
+L174 75
+L124 75
+L77 75
+Z"
+fill="#071626"/>
+
+<!-- COCKPIT WINDOW -->
+<path d="
+M124 60
+Q143 44 164 57
+L174 69
+L162 77
+L130 77
+L119 69
+Z"
+fill="#071626"
+stroke="#ff1744"
+stroke-width="5"
+stroke-linejoin="round"/>
+
+<!-- WINDOW REFLECTION -->
+<path d="M137 59 L153 55"
+stroke="#ff8da1" stroke-width="2" opacity=".7"/>
+
+<!-- NOSE -->
+<path d="M193 62 L207 68 L220 70 L207 76 L193 80"
+fill="none" stroke="#ff1744" stroke-width="7"
+stroke-linecap="round"/>
+
+<!-- TWO FRONT PROPELLER BLADES -->
+<g>
+<path d="
+M218 70
+Q222 35 229 12
+Q238 6 235 32
+L222 70 Z"
+fill="#ff1744" stroke="#ff8297" stroke-width="2"/>
+
+<path d="
+M218 70
+Q222 105 229 128
+Q238 134 235 108
+L222 70 Z"
+fill="#ff1744" stroke="#ff8297" stroke-width="2"/>
+
+<circle cx="219" cy="70" r="5" fill="#ffb3c0"/>
+
+<animateTransform
+attributeName="transform"
+type="rotate"
+from="0 219 70"
+to="360 219 70"
+dur=".18s"
+repeatCount="indefinite"/>
+</g>
+
+</svg>
+
+<div class="cashout-label">AVIATOR SIGNAL</div>
+<div id="signal-display" class="signal-value">0.00x</div>
+<div id="status" class="status-text">SYSTEM READY</div>
+
+</div>
+
+<div class="analysis-btn-wrapper" onclick="startAnalysis()">
+<div class="analysis-text" id="analysis-btn">ANALYSIS</div>
+</div>
+
+<div class="developer-credit">DEMO SIGNAL ANIMATION</div>
+
+</div>
+
+<div id="pane-history" class="tab-pane">
+<div class="panel-title-text">
+SIGNAL HISTORY (<span id="totalCount">0</span>)
+</div>
+<div class="history-container" id="historyList">
+<div style="text-align:center;color:#666;padding:20px;font-size:10px">
+NO SIGNALS GENERATED
+</div>
+</div>
+</div>
+
+<div id="pane-settings" class="tab-pane">
+<div class="panel-title-text">SETTINGS</div>
+<div class="setting-row">
+<span>System Status</span>
+<input type="checkbox" id="hackToggle" checked style="accent-color:#00ffcc">
+</div>
+<div class="setting-row">
+<span>Engine Version</span>
+<span style="color:#ff007f">v6.6 Ultra Pro</span>
+</div>
+<div class="setting-row">
+<span>Plane Animation</span>
+<span style="color:#00ffcc">ACTIVE</span>
+</div>
+</div>
+
+</div>
+
+<div class="bottom-nav">
+<button class="nav-item active" id="nav-home" onclick="switchTab('home')">
+<svg viewBox="0 0 24 24"><path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/></svg>
+HOME
+</button>
+<button class="nav-item" id="nav-history" onclick="switchTab('history')">
+<svg viewBox="0 0 24 24"><path d="M13 3a9 9 0 0 0-9 9H1l4 4 4-4H6a7 7 0 1 1 7 7 7 7 0 0 1-7-7H4a9 9 0 1 0 9-9zm-1 5v5l4 2.5.8-1.3-3.3-2V8z"/></svg>
+HISTORY
+</button>
+<button class="nav-item" id="nav-settings" onclick="switchTab('settings')">
+<svg viewBox="0 0 24 24"><path d="M12 8a4 4 0 1 0 0 8 4 4 0 0 0 0-8zm0-6 2 3 4-1 2 4-2 3 2 3-2 4-4-1-2 3-2-3-4 1-2-4 2-3-2-3 2-4 4 1z"/></svg>
+SETTINGS
+</button>
+</div>
+
+</div>
+
+<script>
+const CORRECT_PASS="RAFI6T9";
+let signalHistory=[];
+let isAnalyzing=false;
+let animId=null;
+let delayTimer=null;
+
+const canvas=document.getElementById("aviatorCanvas");
+const ctx=canvas.getContext("2d");
+const plane=document.getElementById("aviatorPlane");
+
+function checkLogin(){
+if(document.getElementById("passInput").value.trim()===CORRECT_PASS){
+document.getElementById("login-screen").style.display="none";
+document.getElementById("main-panel").style.display="block";
+initCanvas();
+}else alert("WRONG PASSWORD!");
+}
+
+document.getElementById("passInput").addEventListener("keydown",e=>{
+if(e.key==="Enter")checkLogin();
+});
+
+function switchTab(tab){
+document.querySelectorAll(".tab-pane").forEach(x=>x.classList.remove("active"));
+document.querySelectorAll(".nav-item").forEach(x=>x.classList.remove("active"));
+document.getElementById("pane-"+tab).classList.add("active");
+document.getElementById("nav-"+tab).classList.add("active");
+if(tab==="home")initCanvas();
+}
+
+function hideHack(){
+document.getElementById("main-panel").style.display="none";
+document.getElementById("floating-fab").style.display="block";
+}
+
+function showHack(){
+document.getElementById("floating-fab").style.display="none";
+document.getElementById("main-panel").style.display="block";
+initCanvas();
+}
+
+function initCanvas(){
+const box=canvas.parentElement;
+const rect=box.getBoundingClientRect();
+const dpr=Math.min(devicePixelRatio||1,2);
+canvas.width=rect.width*dpr;
+canvas.height=rect.height*dpr;
+canvas.style.width=rect.width+"px";
+canvas.style.height=rect.height+"px";
+ctx.setTransform(dpr,0,0,dpr,0,0);
+}
+
+function startAnalysis(){
+
+if(!document.getElementById("hackToggle").checked){
+alert("SYSTEM DISABLED!");
+return;
+}
+if(isAnalyzing)return;
+
+isAnalyzing=true;
+initCanvas();
+
+const btn=document.getElementById("analysis-btn");
+const status=document.getElementById("status");
+const display=document.getElementById("signal-display");
+
+btn.innerText="ANALYZING...";
+status.innerText="GENERATING SIGNAL...";
+display.innerText="1.00x";
+
+const target=generateLogic();
+
+let startTime=null;
+let progress=0;
+const w=canvas.clientWidth;
+const h=canvas.clientHeight;
+const duration=3500;
+
+plane.style.opacity="1";
+
+function animate(timestamp){
+
+if(!startTime)startTime=timestamp;
+progress=Math.min((timestamp-startTime)/duration,1);
+
+ctx.clearRect(0,0,w,h);
+
+const startX=3;
+const startY=h-5;
+const endX=Math.min(w-12,w*.84*progress);
+const endY=h-8-(h*.76*Math.pow(progress,1.55));
+
+const controlX=startX+(endX-startX)*.4;
+const controlY=startY-h*.1;
+
+/* RED AREA */
+ctx.beginPath();
+ctx.moveTo(startX,startY);
+ctx.quadraticCurveTo(controlX,controlY,endX,endY);
+ctx.lineTo(endX,h);
+ctx.lineTo(startX,h);
+ctx.closePath();
+
+const grad=ctx.createLinearGradient(0,0,0,h);
+grad.addColorStop(0,"rgba(255,0,55,.5)");
+grad.addColorStop(1,"rgba(255,0,55,.01)");
+ctx.fillStyle=grad;
+ctx.fill();
+
+/* RED FLIGHT TRAIL */
+ctx.beginPath();
+ctx.moveTo(startX,startY);
+ctx.quadraticCurveTo(controlX,controlY,endX,endY);
+ctx.strokeStyle="#ff1744";
+ctx.lineWidth=3;
+ctx.shadowColor="#ff003c";
+ctx.shadowBlur=15;
+ctx.stroke();
+ctx.shadowBlur=0;
+
+/* AIRCRAFT */
+plane.style.left=endX+"px";
+plane.style.top=endY+"px";
+
+display.innerText=(1+(target-1)*progress).toFixed(2)+"x";
+
+if(progress<1){
+animId=requestAnimationFrame(animate);
+}else{
+display.innerText=target.toFixed(2)+"x";
+status.innerText="SIGNAL READY!";
+btn.innerText="ANALYSIS";
+isAnalyzing=false;
+signalHistory.unshift(target.toFixed(2)+"x");
+updateHistoryUI();
+}
+}
+
+if(animId)cancelAnimationFrame(animId);
+if(delayTimer)clearTimeout(delayTimer);
+
+delayTimer=setTimeout(()=>{
+animId=requestAnimationFrame(animate);
+},150);
+}
+
+function generateLogic(){
+const rand=Math.random()*100;
+let val;
+if(rand<=50)val=Math.random()*(2.50-2)+2;
+else if(rand<=80)val=Math.random()*(2.80-2.30)+2.30;
+else val=Math.random()*(2-1.68)+1.68;
+return Number(val.toFixed(2));
+}
+
+function updateHistoryUI(){
+document.getElementById("totalCount").innerText=signalHistory.length;
+document.getElementById("historyList").innerHTML=
+signalHistory.map((item,index)=>`
+<div class="history-row">
+<span>SIGNAL #${signalHistory.length-index}</span>
+<b>${item}</b>
+</div>`).join("");
+}
+
+/* PANEL DRAG */
+const panel=document.getElementById("main-panel");
+const header=document.getElementById("dragHeader");
+let dragging=false,offsetX=0,offsetY=0;
+
+header.addEventListener("pointerdown",e=>{
+if(e.target.closest("button"))return;
+dragging=true;
+const r=panel.getBoundingClientRect();
+offsetX=e.clientX-r.left;
+offsetY=e.clientY-r.top;
+header.setPointerCapture(e.pointerId);
+});
+
+header.addEventListener("pointermove",e=>{
+if(!dragging)return;
+panel.style.left=Math.max(0,Math.min(innerWidth-panel.offsetWidth,e.clientX-offsetX))+"px";
+panel.style.top=Math.max(0,Math.min(innerHeight-panel.offsetHeight,e.clientY-offsetY))+"px";
+panel.style.right="auto";
+});
+header.addEventListener("pointerup",()=>dragging=false);
+header.addEventListener("pointercancel",()=>dragging=false);
+
+/* FLOATING BUTTON */
+const fab=document.getElementById("floating-fab");
+let fabDrag=false,fabX=0,fabY=0,moved=false;
+
+fab.addEventListener("pointerdown",e=>{
+fabDrag=true;moved=false;
+const r=fab.getBoundingClientRect();
+fabX=e.clientX-r.left;
+fabY=e.clientY-r.top;
+fab.setPointerCapture(e.pointerId);
+});
+
+fab.addEventListener("pointermove",e=>{
+if(!fabDrag)return;
+if(Math.abs(e.movementX)+Math.abs(e.movementY)>3)moved=true;
+fab.style.left=Math.max(0,Math.min(innerWidth-fab.offsetWidth,e.clientX-fabX))+"px";
+fab.style.top=Math.max(0,Math.min(innerHeight-fab.offsetHeight,e.clientY-fabY))+"px";
+fab.style.right="auto";
+});
+
+fab.addEventListener("pointerup",()=>{
+fabDrag=false;
+if(!moved)showHack();
+});
+fab.addEventListener("pointercancel",()=>fabDrag=false);
+
+window.addEventListener("resize",initCanvas);
+</script>
+
+</body>
+</html>
